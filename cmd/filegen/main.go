@@ -163,7 +163,7 @@ VERSION:
 		Usage: "if this flag is set, meta config checks(consensus size/observers, etc.) will be ignored",
 	}
 	addressHrp = cli.StringFlag{
-		Name:  "address-hrp",
+		Name:  "hrp",
 		Usage: "human-readable address HRP",
 		Value: egldHrp,
 	}
