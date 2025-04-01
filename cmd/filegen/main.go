@@ -162,6 +162,11 @@ VERSION:
 		Name:  "sovereign",
 		Usage: "if this flag is set, meta config checks(consensus size/observers, etc.) will be ignored",
 	}
+	addressHrp = cli.StringFlag{
+		Name:  "hrp",
+		Usage: "human-readable address HRP",
+		Value: egldHrp,
+	}
 
 	errInvalidNumPrivPubKeys = errors.New("invalid number of private/public keys to generate")
 	errInvalidNumOfNodes     = errors.New("invalid number of nodes in shard/metachain or in the consensus group")
@@ -203,6 +208,7 @@ func main() {
 		maxNumValidatorsPerOwner,
 		roundDuration,
 		sovereignConfig,
+		addressHrp,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -284,6 +290,7 @@ func generate(ctx *cli.Context) error {
 	numDelegatedNodesValue := ctx.GlobalUint(numDelegatedNodes.Name)
 	maxNumValidatorsPerOwnerValue := ctx.GlobalUint(maxNumValidatorsPerOwner.Name)
 	roundDurationValue := ctx.GlobalUint(roundDuration.Name)
+	hrp := ctx.GlobalString(addressHrp.Name)
 
 	err = prepareOutputDirectory(outputDirectory)
 	if err != nil {
@@ -316,7 +323,7 @@ func generate(ctx *cli.Context) error {
 		return err
 	}
 
-	validatorPubKeyConverter, walletPubKeyConverter, err := createPubKeyConverters()
+	validatorPubKeyConverter, walletPubKeyConverter, err := createPubKeyConverters(hrp)
 	if err != nil {
 		return err
 	}
@@ -415,11 +422,11 @@ func prepareOutputDirectory(outputDirectory string) error {
 	return err
 }
 
-func createPubKeyConverters() (mxCore.PubkeyConverter, mxCore.PubkeyConverter, error) {
+func createPubKeyConverters(hrp string) (mxCore.PubkeyConverter, mxCore.PubkeyConverter, error) {
 	walletPubKeyConverter, err := mxCommonFactory.NewPubkeyConverter(config.PubkeyConfig{
 		Length: 32,
 		Type:   walletPubKeyFormat,
-		Hrp:    egldHrp,
+		Hrp:    hrp,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w for walletPubKeyConverter", err)
@@ -428,6 +435,7 @@ func createPubKeyConverters() (mxCore.PubkeyConverter, mxCore.PubkeyConverter, e
 	validatorPubKeyConverter, err := mxCommonFactory.NewPubkeyConverter(config.PubkeyConfig{
 		Length: 96,
 		Type:   validatorPubKeyFormat,
+		Hrp:    hrp,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w for validatorPubKeyConverter", err)
